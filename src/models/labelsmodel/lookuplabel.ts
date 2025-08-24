@@ -1,6 +1,6 @@
 import Label from "../labelsmodel/labelmodel"
 import RequiredLevel from "./requiredlevel";
-import Lookupinterface from "../modelsinterface/lookupinterface";
+import Lookupinterface from "../models-interface/lookupinterface";
 class Lookup {
     public SchemaName: string;
     public DisplayName: Label;

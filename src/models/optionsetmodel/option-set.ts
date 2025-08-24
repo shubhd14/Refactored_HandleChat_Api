@@ -1,9 +1,9 @@
 import Label from "../labelsmodel/labelmodel";
-import booleanoptions from "./booleanoptions";
+import booleanoptions from "./boolean-options";
 import Option from "./option";
-import mapoptions from "./mapoptions";
-import maptrueoption from "./maptrueoption";
-import mapfalseoption from "./mapfalseoption";
+import mapoptions from "./map-options";
+import maptrueoption from "./map-true-option";
+import mapfalseoption from "./map-false-option";
 import Constant from "../../constants/constant";
 const Cons = new Constant();
 class OptionSet {

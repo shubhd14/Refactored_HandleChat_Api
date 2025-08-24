@@ -1,4 +1,4 @@
-import lookupmetda from "../modelsinterface/lookupinterface"
+import lookupmetda from "../models-interface/lookupinterface"
 import cascade from "../labelsmodel/cascadeconfiguration";
 import Lookup from "../labelsmodel/lookuplabel"
 import Constant from "../../constants/constant";

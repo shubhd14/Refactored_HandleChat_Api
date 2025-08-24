@@ -1,5 +1,5 @@
 import Label from "../labelsmodel/labelmodel";
-import EntityMetadata from "../modelsinterface/entityinterface";
+import EntityMetadata from "../models-interface/entityinterface";
 import Constant from "../../constants/constant";
 const Cons = new Constant();
 class updateentity {

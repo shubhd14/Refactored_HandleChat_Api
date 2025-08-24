@@ -2,8 +2,8 @@
 
 import { Request, Response } from "express";
 import Chat from "../models/chat";
-import UserChats from "../models/userChats";
-import ChatModule from "../services/chatService";
+import UserChats from "../models/user-chats";
+import ChatModule from "../services/chat-service";
 
 
 
@@ -14,12 +14,43 @@ user?: any;
     chatId: string;
     prompt: string;
     response: string;
-    model?: string;
+    model?: number;
     action?: number;
     currentModel?: number;
     newTitle?: string;
   };
 }
+export interface ChatRequestBody {
+  chatId: string;
+  prompt: string;
+  response?: string;
+  model?: number;
+  action?: number;
+  currentModel?: number;
+  newTitle?: string;
+}
+// dto/chat.dto.ts
+export class ChatRequestDto {
+  chatId: string;
+  prompt: string;
+  response?: string;
+  model: number = 0;
+  action: number = 0;
+  currentModel?: number;
+  newTitle?: string;
+
+  constructor(body: ChatRequestBody) {
+    this.chatId = body.chatId;
+    this.prompt = body.prompt;
+    this.response = body.response;
+    this.model = body.model ?? 0;
+    this.action = body.action ?? 0;
+    this.currentModel = body.currentModel;
+    this.newTitle = body.newTitle;
+  }
+}
+
+ 
 
 // fetch all recent chat list
 const recentchats = async (req: ChatApi, res: Response): Promise<void> => {
@@ -174,9 +205,11 @@ async function saveToChatHistory(
     );
   }
 }
+
 export async function handleChatRequestApi(req: ChatApi, res: Response) {
+  const dto = new ChatRequestDto(req.body);
   const handler = new ChatModule.ChatHandler();
-  await handler.handleChatRequest(req, res);
+  await handler.handleChatRequest(dto, res);
 }
 
 

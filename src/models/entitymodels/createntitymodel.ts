@@ -1,8 +1,8 @@
 //#region classes import 
 import Label from "../labelsmodel/labelmodel";
 import Attribute from "../attributemodel/createattribute";
-import AttributeInterface from "../modelsinterface/attributeinterface";
-import EntityMetadata from "../modelsinterface/entityinterface";
+import AttributeInterface from "../models-interface/attributeinterface";
+import EntityMetadata from "../models-interface/entityinterface";
 import Constant from "../../constants/constant";
 const Cons = new Constant();  
 //#endregion 

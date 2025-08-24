@@ -1,13 +1,15 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { sessionHistories } from "../helpers/sessionHelper"; 
-import { getPluginTraceDetails,Tracelogchecker,execute_data_operation,execute_retrieve_query,create_custom_entity, retrieve_entity_metadata,enableTraceLog} from "./crmApiFunctions";
+import { sessionHistories } from "../helpers/session-helper"; 
+import { getPluginTraceDetails,Tracelogchecker,execute_data_operation,execute_retrieve_query,create_custom_entity, retrieve_entity_metadata,enableTraceLog} from "./crm-api-functions";
 import dotenv from "dotenv";
-import { functionDeclarationstwo } from "./data/geminiifunctions/hardcodeddata/followuppromptfunction";
-import { formatResponseSummary } from "./crmApiFunctions";
-import { genAI } from "./chatService";
-import { model } from "./chatService";
+import { functionDeclarationstwo } from "./data/geminiifunctions/hardcodeddata/followup-prompt-function";
+import { formatResponseSummary } from "./crm-api-functions";
+import { genAI } from "./chat-service";
+import { model } from "./chat-service";
 import Constant from "../constants/constant";
-import { formatResponse } from "../helpers/responseFormatter";
+import { formatResponse } from "../helpers/response-formatter";
+import { message } from "../helpers/message";
+import { GenerativeModel } from "@google/generative-ai";
 dotenv.config();
 
 const cons = new Constant();
@@ -17,7 +19,7 @@ const systemPrompt = {
   role: "user",
   parts: [
     {
-      text: cons.SYSTEM_MESSAGE_BASE_Crm_Assistant
+      text: message.SYSTEM_MESSAGE_BASE_Crm_Assistant
     },
   ],
 };
@@ -30,36 +32,38 @@ export class SystemMessageBuilder {
 
   constructor(
     baseMessageKey: string,
-    guidelinesKey: string,
+    guidelinesKey: string[]=[],
     baseMessage: string = "",
-    guidelines: string[] = [],
+    guidelines: string[] =[],
     safeReplies: string[] = [],
     userRole: string = ""
-  ) {
+  ) 
+  //Default from Caller
+  {
     this.baseMessage = baseMessage;
     this.guidelines = guidelines;
     this.safeReplies = safeReplies;
     this.userRole = userRole;
 
-    if (process.env["SYSTEM_MESSAGE_USER_ROLE"]) {
-      this.userRole = process.env["SYSTEM_MESSAGE_USER_ROLE"];
+    if (message.SYSTEM_MESSAGE_USER_ROLE) {// ye condition hata de toh
+      this.userRole = message.SYSTEM_MESSAGE_USER_ROLE;
     }
 
-    if (process.env[baseMessageKey]) {
-      this.baseMessage = process.env[baseMessageKey];
+    if (message.SYSTEM_MESSAGE_BASE) {
+      this.baseMessage = message.SYSTEM_MESSAGE_BASE;
     }
 
-    if (process.env[guidelinesKey]) {
+    if (message.SYSTEM_MESSAGE_GUIDELINES) {
       this.guidelines = this.guidelines.concat(
-        process.env[guidelinesKey].split("||")
+        message.SYSTEM_MESSAGE_GUIDELINES
       );
     }
 
     if (
       this.safeReplies.length === 0 &&
-      process.env["SYSTEM_MESSAGE_SAFE_REPLIES"]
+     message.SYSTEM_MESSAGE_SAFE_REPLIES
     ) {
-      this.safeReplies = process.env["SYSTEM_MESSAGE_SAFE_REPLIES"].split("||");
+      this.safeReplies =message.SYSTEM_MESSAGE_SAFE_REPLIES.split("||");
     }
   }
 
@@ -87,21 +91,27 @@ export class SystemMessageBuilder {
   }
 }
 
+// Represents a chat message exchanged with Gemini.
+interface ChatMessage {
+  role: "user" | "model" | "system"|string;
+  parts: { text: string }[];
+}
+
 export class GeminiService {
-  private apiKey: string;
-  private modelName: string;
-  private sessionHistories = new Map();
+  private genAI: GoogleGenerativeAI;
+  private model: GenerativeModel;
+  private sessionHistories: Map<string, ChatMessage[]>;
 
   constructor(
-    apiKey: string,
-    sessionHistories: Map<string, any> = new Map(),
-    modelName: string = "gemini-1.5-pro-latest"
+    private apiKey: string,
+    sessionHistories: Map<string, ChatMessage[]> = new Map(),
+    private modelName: string = "gemini-1.5-pro-latest"
   ) {
-    this.apiKey = apiKey;
-    this.modelName = modelName;
+    this.genAI = new GoogleGenerativeAI(this.apiKey);
+    this.model = this.genAI.getGenerativeModel({ model: this.modelName });
     this.sessionHistories = sessionHistories;
   }
-
+  
   async interactWithGemini(
     userMessage: string,
     systemMessageBuilder: SystemMessageBuilder,

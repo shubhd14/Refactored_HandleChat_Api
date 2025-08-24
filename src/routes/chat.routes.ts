@@ -3,8 +3,8 @@ import {
   getToken,
   logoutUser,
 } from "../middleware/auth.middleware";
-import { crmConnection } from "../services/getAccessToken"; // ✅ import added
-import { handleChatRequestApi } from "../controllers/chatController";
+import { crmConnection } from "../services/get-access-token"; // ✅ import added
+import { handleChatRequestApi } from "../controllers/chat-controller";
 
 const router = Router();
 

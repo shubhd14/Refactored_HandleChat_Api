@@ -1,4 +1,4 @@
-import booleanoptions from "../optionsetmodel/booleanoptions";
+import booleanoptions from "../optionsetmodel/boolean-options";
 import Option from "../optionsetmodel/option";
 interface  AttributeInterface {
     "@odata.type":string;

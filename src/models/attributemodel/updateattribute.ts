@@ -1,6 +1,6 @@
 import Label from "../labelsmodel/labelmodel";
 import RequiredLevel from "../labelsmodel/requiredlevel";
-import AttributeMetadata from "../modelsinterface/attributeinterface";
+import AttributeMetadata from "../models-interface/attributeinterface";
 import { AttributeTypeName, FormatName, IsAuditEnabled } from "./attributesetting";
 import { IsGlobalFilterEnabled } from "./attributesetting";
 import { IsSortableEnabled } from "./attributesetting";

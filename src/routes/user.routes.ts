@@ -1,7 +1,7 @@
 import express from "express";
-import  ServiceManager from "../services/CRMTraceLogServices";
-import { crmConnection } from "../services/getAccessToken";
-import { handleChatRequestApi } from "../controllers/chatController";
+import  ServiceManager from "../services/crm-tracelogservices";
+import { crmConnection } from "../services/get-access-token";
+import { handleChatRequestApi } from "../controllers/chat-controller";
 
 
 const router = express.Router();

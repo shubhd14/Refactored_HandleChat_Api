@@ -1,7 +1,7 @@
 //import axiosRetry from 'axios-retry';
 import axios from 'axios';
-import { AttributeMetadata, EntityMetadata } from './data/geminiifunctions/hardcodeddata/entitymetadata';
-import { BearerToken, crmurl } from './getAccessToken';
+import { AttributeMetadata, EntityMetadata } from './data/geminiifunctions/hardcodeddata/entity-metadata';
+import { BearerToken, crmurl } from './get-access-token';
 let organizationId: string | null = null;
 
 export async function getPluginTraceDetails() {

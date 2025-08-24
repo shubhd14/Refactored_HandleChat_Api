@@ -1,7 +1,7 @@
 import Label from "../labelsmodel/labelmodel";
 import RequiredLevel from "../labelsmodel/requiredlevel";
-import OptionSet from "../optionsetmodel/optionset";
-import AttributeMetadata from "../modelsinterface/attributeinterface";
+import OptionSet from "../optionsetmodel/option-set";
+import AttributeMetadata from "../models-interface/attributeinterface";
 import Constant from "../../constants/constant";
 import { AttributeTypeName, FormatName, IsAuditEnabled } from "./attributesetting";
 import { IsGlobalFilterEnabled } from "./attributesetting";

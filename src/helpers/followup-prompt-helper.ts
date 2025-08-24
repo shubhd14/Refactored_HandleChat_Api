@@ -1,4 +1,4 @@
-import { genAI } from "../services/chatService";
+import { genAI } from "../services/chat-service";
 
 export async function followupprompts(input: any): Promise<string[]> {
     const MAX_RETRIES = 3;

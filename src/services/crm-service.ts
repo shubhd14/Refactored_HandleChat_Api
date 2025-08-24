@@ -1,20 +1,20 @@
 
 import CreateEntity from "../models/entitymodels/createntitymodel";
-import EntityMetadata from "../models/modelsinterface/entityinterface";
+import EntityMetadata from "../models/models-interface/entityinterface";
 import axios, { AxiosError } from "axios";
-import Solutioninterface from "../models/modelsinterface/solutioninterface";
-import AddComponent from "../models/modelsinterface/solutionmodel/addcomponent";
-import Lookupinterface from "../models/modelsinterface/lookupinterface";
-import Createlookup from "../models/relationshipmodel/createlookupfield";
+import Solutioninterface from "../models/models-interface/solutioninterface";
+import AddComponent from "../models/models-interface/solutionmodel/addcomponent";
+import Lookupinterface from "../models/models-interface/lookupinterface";
+import Createlookup from "../models/relationshipmodel/create-lookup-field";
 import updateentity from "../models/entitymodels/updateentitymodel";
-import CRMTraceLogServices from "./CRMTraceLogServices";
-import AttributeInterface from "../models/modelsinterface/attributeinterface";
-import { CreateAttributesMethod } from "../helpers/attributeHelpers";
-import { genAI } from "./chatService";
-import { BearerToken } from "./getAccessToken";
-import { cleanText } from "./systemmessagebuilder";
+import CRMTraceLogServices from "./crm-tracelogservices";
+import AttributeInterface from "../models/models-interface/attributeinterface";
+import { CreateAttributesMethod } from "../helpers/attribute-helpers";
+import { genAI } from "./chat-service";
+import { BearerToken } from "./get-access-token";
+import { cleanText } from "./system-message-builder";
 
-import { UpdateAttributesmethod } from "../helpers/attributeHelpers";
+import { UpdateAttributesmethod } from "../helpers/attribute-helpers";
 
 export let crmurl: string = "";
 export let defaultsolutionname: string = "";

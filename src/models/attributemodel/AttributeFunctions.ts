@@ -1,6 +1,6 @@
 import axios from "axios";
-import CRMTraceLogServices from "../../services/CRMTraceLogServices";
-import { BearerToken } from "../../services/getAccessToken";
+import CRMTraceLogServices from "../../services/crm-tracelogservices";
+import { BearerToken } from "../../services/get-access-token";
 
  export async function updatingattributes(updateattrobj: AttributeInterface[]): Promise<string> {
     const url = crmurl;

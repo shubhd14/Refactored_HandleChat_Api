@@ -1,5 +1,5 @@
-import falseoption from "./falseoption";
-import trueoption from "./trueoption";
+import falseoption from "./false-option";
+import trueoption from "./true-option";
 class booleanoptions {
     public TrueOption: trueoption;
     public FalseOption: falseoption;

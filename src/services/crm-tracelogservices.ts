@@ -2,8 +2,8 @@
 import {Request,Response} from "express";
 import {v4 as uuidv4} from "uuid";
 import RequestBody from "../models/masterjsonbody/requestbody";
-import { CreatingEntity } from "./crmService";
-import { EntityIdReturnBack, AddSolutionComponent,CreateLookupField,UpdateEntity,creatingAttribute,updatingattributes } from "./crmService";
+import { CreatingEntity } from "./crm-service";
+import { EntityIdReturnBack, AddSolutionComponent,CreateLookupField,UpdateEntity,creatingAttribute,updatingattributes } from "./crm-service";
 export let defaultsolutionname: string = "";
 
  export default class CRMTraceLogServices{

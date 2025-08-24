@@ -1,5 +1,5 @@
 import updateattribute from "../models/attributemodel/updateattribute";
-import AttributeInterface from "../models/modelsinterface/attributeinterface";
+import AttributeInterface from "../models/models-interface/attributeinterface";
 import Attribute from "../models/attributemodel/createattribute";
 
   export function UpdateAttributesmethod(fields: AttributeInterface[]): updateattribute[] {

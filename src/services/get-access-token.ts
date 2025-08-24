@@ -3,7 +3,7 @@
 import axios from "axios";
 import { URLSearchParams } from "url";
 import { Request, Response } from "express";
-import CRMConnectionModel from "../models/crmconnection.model";
+import CRMConnectionModel from "../models/crm-connection-model";
 
 // Runtime globals (not recommended for production, but okay temporarily)
 export let BearerToken: string = "";
