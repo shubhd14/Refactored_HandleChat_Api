@@ -4,56 +4,17 @@ import { Request, Response } from "express";
 import Chat from "../models/chat";
 import UserChats from "../models/user-chats";
 import ChatModule from "../services/chat-service";
+import { ChatApi } from "../dtos/chat-dto";
+import { ChatRequestDto } from "../dtos/chat-dto";
 
 
 
-// Custom Request type with `auth` and `body`
-export interface ChatApi extends Request {
-user?: any;
-  body: {
-    chatId: string;
-    prompt: string;
-    response: string;
-    model?: number;
-    action?: number;
-    currentModel?: number;
-    newTitle?: string;
-  };
-}
-export interface ChatRequestBody {
-  chatId: string;
-  prompt: string;
-  response?: string;
-  model?: number;
-  action?: number;
-  currentModel?: number;
-  newTitle?: string;
-}
-// dto/chat.dto.ts
-export class ChatRequestDto {
-  chatId: string;
-  prompt: string;
-  response?: string;
-  model: number = 0;
-  action: number = 0;
-  currentModel?: number;
-  newTitle?: string;
 
-  constructor(body: ChatRequestBody) {
-    this.chatId = body.chatId;
-    this.prompt = body.prompt;
-    this.response = body.response;
-    this.model = body.model ?? 0;
-    this.action = body.action ?? 0;
-    this.currentModel = body.currentModel;
-    this.newTitle = body.newTitle;
-  }
-}
-
- 
+ //---CONTROLLER---
+ export class ChatController{
 
 // fetch all recent chat list
-const recentchats = async (req: ChatApi, res: Response): Promise<void> => {
+  getRecentChats = async (req: ChatApi, res: Response): Promise<void> => {
   const userId = req.user?.uid;
   try {
     const userChats = await UserChats.findOne({ userId: userId });
@@ -77,10 +38,9 @@ const recentchats = async (req: ChatApi, res: Response): Promise<void> => {
 };
 
 // fetch a single chat by chatId and userId from the database
-const chat = async (req: ChatApi, res: Response) => {
+ getChat = async (req: ChatApi, res: Response) => {
   const userId = req.user?.uid;
   const chatId = req.query.chatId;
-  // const userId = "1234567890";
   try {
     const chat = await Chat.findOne({
       chatId: chatId,
@@ -94,7 +54,7 @@ const chat = async (req: ChatApi, res: Response) => {
 };
 
 //delete a chat by chatId and userId from the database
-const deleteChat = async (req: ChatApi, res: Response): Promise<void> => {
+ deleteChat = async (req: ChatApi, res: Response): Promise<void> => {
   const userId = req.user?.uid;
   const chatId = req.query.chatId;
 
@@ -125,7 +85,7 @@ const deleteChat = async (req: ChatApi, res: Response): Promise<void> => {
 };
 
 // update chat title by chatId and userId from the database
-const updateChatTitle = async (req: ChatApi, res: Response): Promise<void> => {
+ updateChatTitle = async (req: ChatApi, res: Response): Promise<void> => {
   const userId = req.user?.uid;
   const { chatId, newTitle } = req.body;
   if (!userId || !chatId || !newTitle) {
@@ -149,7 +109,7 @@ const updateChatTitle = async (req: ChatApi, res: Response): Promise<void> => {
 
 // Load conversation history by user ID and populate sessionHistories map
 
-const ConversationHistory = async (req: ChatApi, res: Response) => {
+ getConversationHistory = async (req: ChatApi, res: Response) => {
   const userId = req?.user?.uid;
 
   try {
@@ -166,7 +126,7 @@ const ConversationHistory = async (req: ChatApi, res: Response) => {
     });
   }
 };
-async function saveToChatHistory(
+async  saveChatMessage(
   chatId: string,
   userId: string,
   prompt: string,
@@ -205,12 +165,12 @@ async function saveToChatHistory(
     );
   }
 }
+ }
 
 export async function handleChatRequestApi(req: ChatApi, res: Response) {
   const dto = new ChatRequestDto(req.body);
   const handler = new ChatModule.ChatHandler();
   await handler.handleChatRequest(dto, res);
 }
+ 
 
-
-export { recentchats, chat, ConversationHistory, saveToChatHistory, deleteChat, updateChatTitle,};

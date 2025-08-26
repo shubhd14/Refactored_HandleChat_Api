@@ -1,6 +1,5 @@
 
 import { Request, Response } from "express";
-import ServiceManager from "./crm-tracelogservices";
 import { callGeminiAI } from "./system-message-builder";
 import {SystemMessageBuilder } from "./system-message-builder";
 import { GeminiService } from "./system-message-builder";
@@ -8,7 +7,6 @@ import { getCurrentDateTime } from "../utils/date-utils";
 import Constant from "../constants/constant";
 import { DefaultValues } from "../constants/default-value";
 import { followupprompts } from "../helpers/followup-prompt-helper";
-import { ChatApi } from "../controllers/chat-controller";
 import Chat from "../models/chat";
 import UserChats from "../models/user-chats";
 import { sessionHistories } from "../helpers/session-helper";
@@ -18,9 +16,8 @@ import { formatResponse } from "../helpers/response-formatter";
 import { FormatResponseOptions } from "../helpers/response-formatter";
 import { prepareActionResponse } from "../helpers/action-response";
 import { FunctionResult } from "../helpers/action-response";
-import { extractRequestParams } from "../utils/request-parser";
 import { Logger } from "../utils/logger";
-import { message } from "../helpers/message";
+import { ConstantMessage } from "../constants/constant-messages";
 import { ChatRequestDto } from "../controllers/chat-controller";
 
 const apiKey = process.env.GOOGLE_API_KEY || "";
@@ -92,13 +89,13 @@ const cons = new Constant();
 }
 
 const BaseMessageKey= {
-  BASE : (message.SYSTEM_MESSAGE_BASE),
-  TRACE : (message.SYSTEM_MESSAGE_BASE_TRACE)
+  BASE : (ConstantMessage.SYSTEM_MESSAGE_BASE),
+  TRACE : (ConstantMessage.SYSTEM_MESSAGE_BASE_TRACE)
 }as const;
 
 const GuidelinesKey ={
-  BASE : (message.SYSTEM_MESSAGE_GUIDELINES),
-  TRACE : (message.SYSTEM_MESSAGE_GUIDELINES_TRACE)
+  BASE : (ConstantMessage.SYSTEM_MESSAGE_GUIDELINES),
+  TRACE : (ConstantMessage.SYSTEM_MESSAGE_GUIDELINES_TRACE)
 } as const;
 
 export namespace ChatModule {
@@ -152,7 +149,7 @@ if (!modelKeys) return;
         // Action handling
         if (dto.action === 1 && dto.model === MODEL_PARAMS.BASE) {
           const storedValue = await DefaultValues();
-          const masterMsg = (cons.Masterjsonmsg || "") + storedValue;
+          const masterMsg = (ConstantMessage.Masterjsonmsg|| "") + storedValue;
 
           responseJson = await prepareActionResponse({
             sessionId:dto.chatId,
