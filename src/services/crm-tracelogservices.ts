@@ -1,90 +1,142 @@
-
-import {Request,Response} from "express";
-import {v4 as uuidv4} from "uuid";
+import { Request, Response } from "express";
+import { v4 as uuidv4 } from "uuid";
 import RequestBody from "../models/masterjsonbody/requestbody";
-import { CreatingEntity } from "./crm-service";
-import { EntityIdReturnBack, AddSolutionComponent,CreateLookupField,UpdateEntity,creatingAttribute,updatingattributes } from "./crm-service";
+import { PluginFilter,PluginFilterRequest } from "../models/plugin-filter-dto";
+import {
+  CreatingEntity,
+  EntityIdReturnBack,
+  AddSolutionComponent,
+  CreateLookupField,
+  UpdateEntity,
+  creatingAttribute,
+  updatingattributes,
+} from "./crm-service";
+
 export let defaultsolutionname: string = "";
 
- export default class CRMTraceLogServices{
+/**
+ * Service class for handling CRM Trace Log operations.
+ * All public methods are intended as controller endpoints.
+ */
+export default class CRMTraceLogServices {
+  /**
+   * Main entry for CRM customization execution.
+   * Handles both entity creation and update workflows.
+   */
+  public async executeCrmCustomizations(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    let result: unknown;
+    const finalpostmanresponse: unknown[] = [];
+    const parsedResponse: RequestBody = req.body;
 
- async executeCrmCustomizations(req: Request, res: Response): Promise<void> {
-    const SolutionUniqueName = process.env.SolutionUniqueName;
-    const processId = uuidv4();
-    let result;
-    const logs: string[] = [];
-    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-    const service = new CRMTraceLogServices()
-    let finalpostmanresposne = [];
-    const parsedResponse: RequestBody = req.body
-   
-    const entityValidation = service.validateRequiredFields(parsedResponse.entity, ['schemaName', 'displayName']);
+    // ✅ Validate entity fields
+    const entityValidation = this.validateRequiredFields(parsedResponse.entity, [
+      "schemaName",
+      "displayName",
+    ]);
     if (!entityValidation.isValid) {
-      finalpostmanresposne.push("Entity missing requried field : " + entityValidation.missingFields);
-  
+      finalpostmanresponse.push(
+        "Entity missing required field(s): " + entityValidation.missingFields
+      );
       return;
     }
-    const invalidAttributes = parsedResponse.entity.attributes.map((attr, index) => ({ index, ...service.validateRequiredFields(attr, ['schemaName', 'displayName']), })).filter((result) => !result.isValid);
-    if (invalidAttributes.length > 0) {
-      finalpostmanresposne.push("Some attributes are missing required fields");
 
+    const invalidAttributes = parsedResponse.entity.attributes
+      .map((attr, index) => ({
+        index,
+        ...this.validateRequiredFields(attr, ["schemaName", "displayName"]),
+      }))
+      .filter((result) => !result.isValid);
+
+    if (invalidAttributes.length > 0) {
+      finalpostmanresponse.push(
+        "Some attributes are missing required fields"
+      );
       return;
     }
+
     try {
       if (parsedResponse.entity.id == null) {
-        
-        res.status(202).json(
-          {
-            sucess: true,
-            message: ['CRM customization is processing in the background. Check Dataverse after a few minutes']
-          }
-        );
+        res.status(202).json({
+          success: true,
+          message: [
+            "CRM customization is processing in the background. Check Dataverse after a few minutes",
+          ],
+        });
 
         result = await CreatingEntity(parsedResponse.entity);
-        
-        const entityid = await EntityIdReturnBack(parsedResponse.entity.schemaName);
+        const entityid = await EntityIdReturnBack(
+          parsedResponse.entity.schemaName
+        );
+
         if (defaultsolutionname != null) {
           result = await AddSolutionComponent(entityid, "entity");
         }
-        //finalpostmanresposne.push(result);
-        if (Array.isArray(parsedResponse.relationships) && parsedResponse.relationships.length > 0) {
+
+        if (
+          Array.isArray(parsedResponse.relationships) &&
+          parsedResponse.relationships.length > 0
+        ) {
           for (const relation of parsedResponse.relationships) {
             result = await CreateLookupField(relation);
-            finalpostmanresposne.push(result);
+            finalpostmanresponse.push(result);
           }
         }
-      }
-      else if (parsedResponse.entity.id != null) {
-        const filledProperties = Object.entries(parsedResponse.entity).filter(([key, value]) => value !== null && key !== 'schemaName' && 'id').reduce((acc, [key, value]) => { acc[key] = value; return acc; }, {} as Record<string, any>);
+      } else if (parsedResponse.entity.id != null) {
+        const filledProperties = Object.entries(parsedResponse.entity)
+          .filter(
+            ([key, value]) =>
+              value !== null && key !== "schemaName" && key !== "id"
+          )
+          .reduce((acc, [key, value]) => {
+            acc[key] = value;
+            return acc;
+          }, {} as Record<string, unknown>);
+
         if (Object.keys(filledProperties).length > 0) {
           result = await UpdateEntity(parsedResponse.entity);
-          finalpostmanresposne.push(result);
+          finalpostmanresponse.push(result);
         }
-        const AttributeForCreate = parsedResponse.entity.attributes.filter((attr: { id?: string }) => attr.id == null);
-        if (AttributeForCreate.length > 0) {
-          result = await creatingAttribute(AttributeForCreate, parsedResponse.entity.schemaName);
-          finalpostmanresposne.push(result);
+
+        const attributesForCreate = parsedResponse.entity.attributes.filter(
+          (attr: { id?: string }) => attr.id == null
+        );
+        if (attributesForCreate.length > 0) {
+          result = await creatingAttribute(
+            attributesForCreate,
+            parsedResponse.entity.schemaName
+          );
+          finalpostmanresponse.push(result);
         }
-        const Attributeforupdate = parsedResponse.entity.attributes.filter((attr: { id?: string }) => attr.id != null)
-        if (Attributeforupdate.length > 0) {
-          result = await updatingattributes(Attributeforupdate);
-          finalpostmanresposne.push(result);
+
+        const attributesForUpdate = parsedResponse.entity.attributes.filter(
+          (attr: { id?: string }) => attr.id != null
+        );
+        if (attributesForUpdate.length > 0) {
+          result = await updatingattributes(attributesForUpdate);
+          finalpostmanresponse.push(result);
         }
-        if (Array.isArray(parsedResponse.relationships) && parsedResponse.relationships.length > 0) {
+
+        if (
+          Array.isArray(parsedResponse.relationships) &&
+          parsedResponse.relationships.length > 0
+        ) {
           for (const relation of parsedResponse.relationships) {
             result = await CreateLookupField(relation);
-            finalpostmanresposne.push(result);
-
+            finalpostmanresponse.push(result);
           }
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(500).json({
-        message: error,
+        message: error instanceof Error ? error.message : String(error),
       });
-      finalpostmanresposne.push(error);
+      finalpostmanresponse.push(error);
     }
   }
+
   validateRequiredFields<T extends object>(
     obj: T,
     requiredFields: (keyof T)[]
@@ -98,6 +150,7 @@ export let defaultsolutionname: string = "";
       missingFields: missingFields.map(String),
     };
   }
+
   isSchemaNameMatching(input1: any, input2: any): boolean {
     const mismatches: string[] = [];
     const propertiesToCompare = [
@@ -109,113 +162,165 @@ export let defaultsolutionname: string = "";
       "HasActivities",
       "HasNotes",
     ];
+
     const getNestedValue = (obj: any, path: string): any => {
-      return path.split('.').reduce((o, key) => (o ? o[key] : undefined), obj);
+      return path.split(".").reduce((o, key) => (o ? o[key] : undefined), obj);
     };
+
     for (const property of propertiesToCompare) {
-      const key = property.split('.').pop() || property;
+      const key = property.split(".").pop() || property;
       const value1 = getNestedValue(input1, property);
       const value2 = getNestedValue(input2.entity, key);
 
-      if (value1 !== undefined && value2 !== undefined && value1 !== value2) {
+      if (
+        value1 !== undefined &&
+        value2 !== undefined &&
+        value1 !== value2
+      ) {
         mismatches.push(`${key}: ${value1} !== ${value2}`);
       }
     }
+
     return mismatches.length > 0;
   }
-  async GetPluginTraceLog(req: Request, res: Response): Promise<void> {
-    const ser = new CRMTraceLogServices();
-    let entities;
+
+  public async GetPluginTraceLog(
+    req: PluginFilterRequest,
+    res: Response
+  ): Promise<void> {
     console.log("baseurl");
-    const inputJson = req.body.pluginfilter as any;
+
+    const inputJson:PluginFilter = req.body.pluginfilter;
     let recordCount = 0;
-    console.log("recordCount", recordCount)
-    console.log(inputJson)
-    var input = inputJson;
-    if (input.recordCount) {
-      recordCount = parseInt(input.recordCount, 10);
-    }
-    else
+
+    if (inputJson.recordCount) {
+      recordCount = (inputJson.recordCount, 10);
+    } else {
       recordCount = 100;
-    console.log(recordCount);
+    }
+
     const conditions: string[] = [];
-    if (input.pluginTypeName) {
-      const name = input.pluginTypeName.trim().split(',').map((e: string) => e.trim());
-      const conditionStrings = name.map((name: string) => {
-        return `condition attribute="typename" operator="like" value="%${name}%"/>`;
-      });
-      const filterString = `<filter type="or">${conditionStrings.join('')}</filter>`
-      conditions.push(filterString);
+
+    if (inputJson.pluginTypeName) {
+      const names = inputJson.pluginTypeName
+        .trim()
+        .split(",")
+        .map((e: string) => e.trim());
+      const conditionStrings = names.map(
+        (name: string) =>
+          `condition attribute="typename" operator="like" value="%${name}%"/>`
+      );
+      conditions.push(`<filter type="or">${conditionStrings.join("")}</filter>`);
     }
-    // conditions.push(`<condition attribute="typename" operator="like" value="%${input.pluginTypeName}%" />`);
-    if (input.entityLogicalName) {
-      const entities = input.entityLogicalName.trim().split(',').map((e: string) => e.trim());
-      const conditionStrings = entities.map((entity: string) => {
-        return `<condition attribute="primaryentity" operator="like" value="%${entity}%" />`;
-      });
-      const filterString = `<filter type="or">${conditionStrings.join('')}</filter>`
-      conditions.push(filterString);
+
+    if (inputJson.entityLogicalName) {
+      const entities = inputJson.entityLogicalName
+        .trim()
+        .split(",")
+        .map((e: string) => e.trim());
+      const conditionStrings = entities.map(
+        (entity: string) =>
+          `<condition attribute="primaryentity" operator="like" value="%${entity}%" />`
+      );
+      conditions.push(`<filter type="or">${conditionStrings.join("")}</filter>`);
     }
-    if (input.messagename)
-      conditions.push(`<condition attribute="messagename" operator="like" value="%${input.operationType}%" />`);
-    if (input.correlationId)
-      conditions.push(`<condition attribute="correlationid" operator="eq" value="${input.correlationId}" />`);
-    if (input.userName)
-      conditions.push(`<condition attribute="createdby" operator="like" value="%${input.userName}%" />`);
-    if (input.errorMessage)
-      conditions.push(`<condition attribute="exceptiondetails" operator="like" value="%${input.errorMessage}%" />`);
-    else if (input.exceptionOnly) {
+
+    if (inputJson.messagename) {
+      conditions.push(
+        `<condition attribute="messagename" operator="like" value="%${inputJson.operationType}%" />`
+      );
+    }
+
+    if (inputJson.correlationId) {
+      conditions.push(
+        `<condition attribute="correlationid" operator="eq" value="${inputJson.correlationId}" />`
+      );
+    }
+
+    if (inputJson.userName) {
+      conditions.push(
+        `<condition attribute="createdby" operator="like" value="%${inputJson.userName}%" />`
+      );
+    }
+
+    if (inputJson.errorMessage) {
+      conditions.push(
+        `<condition attribute="exceptiondetails" operator="like" value="%${inputJson.errorMessage}%" />`
+      );
+    } else if (inputJson.exceptionOnly) {
       conditions.push(`<condition attribute="exceptiondetails" operator="not-null" />`);
       conditions.push(`<condition attribute="exceptiondetails" operator="ne" value=""/>`);
     }
-    if (input.maxduration) {
-      conditions.push(`<condition attribute="performanceexecutionduration" operator="le" value="${input.maxduration}"/>`);
+
+    if (inputJson.maxduration) {
+      conditions.push(
+        `<condition attribute="performanceexecutionduration" operator="le" value="${inputJson.maxduration}"/>`
+      );
     }
-    if (input.minduration) {
-      conditions.push(`<condition attribute="performanceexecutionduration" operator="ge" value="${input.minduration}"/>`);
+
+    if (inputJson.minduration) {
+      conditions.push(
+        `<condition attribute="performanceexecutionduration" operator="ge" value="${inputJson.minduration}"/>`
+      );
     }
-    if (input.dateRange?.startDate) {
-      conditions.push(`<condition attribute="createdon" operator="on-or-after" value="${input.dateRange?.startDate}"/>`);
+
+    if (inputJson.dateRange?.startDate) {
+      conditions.push(
+        `<condition attribute="createdon" operator="on-or-after" value="${inputJson.dateRange?.startDate}"/>`
+      );
     }
-    if (input.dateRange?.endDate) {
-      conditions.push(`<condition attribute="createdon" operator="on-or-before" value="${input.dateRange?.endDate}"/>`);
+
+    if (inputJson.dateRange?.endDate) {
+      conditions.push(
+        `<condition attribute="createdon" operator="on-or-before" value="${inputJson.dateRange?.endDate}"/>`
+      );
     }
-    if (input.processType) {
-      conditions.push(`<condition attribute="operationtype" operator="eq" value="${input.processType}"/>`);
+
+    if (inputJson.processType) {
+      conditions.push(
+        `<condition attribute="operationtype" operator="eq" value="${inputJson.processType}"/>`
+      );
     }
+
     const sdkStepConditions: string[] = [];
+
     const fetchXml = `
-          <fetch count="${recordCount}">
-          <entity name="plugintracelog">
-            <attribute name="createdon"/>
-            <attribute name="typename"/>
-            <attribute name="plugintracelogid"/>
-            <attribute name="messagename"/>
-            <attribute name="performanceexecutionduration"/>
-            <attribute name="performanceexecutionstarttime"/>
-            <attribute name="pluginstepid"/>
-            <attribute name="depth"/>
-            <attribute name="operationtype"/>
-            <attribute name="primaryentity"/>
-            <attribute name="messageblock"/>
-            <attribute name="exceptiondetails"/>
-            <attribute name="correlationid"/>
-            <order attribute="performanceexecutionstarttime" descending="true" />
-            <filter type="and">
-              ${conditions.join('\n')}
-            </filter>
-            <link-entity name="sdkmessageprocessingstep" from="sdkmessageprocessingstepid" to="pluginstepid" alias="step">
-              <attribute name="name" />
-              <attribute name="stage" />
-              <attribute name="rank" />
-              <attribute name="mode" />
-              ${sdkStepConditions.length > 0 ? `<filter type="and">${sdkStepConditions.join('\n')}</filter>` : ''}
-            </link-entity>
-            <link-entity name="systemuser" from="systemuserid" to="createdby" alias="createdbyuser">
-              <attribute name="fullname" />
-            </link-entity>
-          </entity>
-        </fetch>`.trim();
+      <fetch count="${recordCount}">
+        <entity name="plugintracelog">
+          <attribute name="createdon"/>
+          <attribute name="typename"/>
+          <attribute name="plugintracelogid"/>
+          <attribute name="messagename"/>
+          <attribute name="performanceexecutionduration"/>
+          <attribute name="performanceexecutionstarttime"/>
+          <attribute name="pluginstepid"/>
+          <attribute name="depth"/>
+          <attribute name="operationtype"/>
+          <attribute name="primaryentity"/>
+          <attribute name="messageblock"/>
+          <attribute name="exceptiondetails"/>
+          <attribute name="correlationid"/>
+          <order attribute="performanceexecutionstarttime" descending="true" />
+          <filter type="and">
+            ${conditions.join("\n")}
+          </filter>
+          <link-entity name="sdkmessageprocessingstep" from="sdkmessageprocessingstepid" to="pluginstepid" alias="step">
+            <attribute name="name" />
+            <attribute name="stage" />
+            <attribute name="rank" />
+            <attribute name="mode" />
+            ${
+              sdkStepConditions.length > 0
+                ? `<filter type="and">${sdkStepConditions.join("\n")}</filter>`
+                : ""
+            }
+          </link-entity>
+          <link-entity name="systemuser" from="systemuserid" to="createdby" alias="createdbyuser">
+            <attribute name="fullname" />
+          </link-entity>
+        </entity>
+      </fetch>`.trim();
+
     const encodedFetchXml = encodeURIComponent(fetchXml);
     console.log(fetchXml);
     console.log(encodedFetchXml);

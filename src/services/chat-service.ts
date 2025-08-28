@@ -18,7 +18,7 @@ import { prepareActionResponse } from "../helpers/action-response";
 import { FunctionResult } from "../helpers/action-response";
 import { Logger } from "../utils/logger";
 import { ConstantMessage } from "../constants/constant-messages";
-import { ChatRequestDto } from "../controllers/chat-controller";
+import { ChatRequestDto } from "../dtos/chat-dto";
 
 const apiKey = process.env.GOOGLE_API_KEY || "";
 export const genAI = new GoogleGenerativeAI(apiKey);

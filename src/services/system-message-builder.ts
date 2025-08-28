@@ -8,7 +8,7 @@ import { genAI } from "./chat-service";
 import { model } from "./chat-service";
 import Constant from "../constants/constant";
 import { formatResponse } from "../helpers/response-formatter";
-import { message } from "../helpers/message";
+import { ConstantMessage } from "../constants/constant-messages";
 import { GenerativeModel } from "@google/generative-ai";
 dotenv.config();
 
@@ -19,7 +19,7 @@ const systemPrompt = {
   role: "user",
   parts: [
     {
-      text: message.SYSTEM_MESSAGE_BASE_Crm_Assistant
+      text: ConstantMessage.SYSTEM_MESSAGE_BASE_Crm_Assistant
     },
   ],
 };
@@ -45,25 +45,25 @@ export class SystemMessageBuilder {
     this.safeReplies = safeReplies;
     this.userRole = userRole;
 
-    if (message.SYSTEM_MESSAGE_USER_ROLE) {// ye condition hata de toh
-      this.userRole = message.SYSTEM_MESSAGE_USER_ROLE;
+    if (ConstantMessage.SYSTEM_MESSAGE_USER_ROLE) {// ye condition hata de toh
+      this.userRole = ConstantMessage.SYSTEM_MESSAGE_USER_ROLE;
     }
 
-    if (message.SYSTEM_MESSAGE_BASE) {
-      this.baseMessage = message.SYSTEM_MESSAGE_BASE;
+    if (ConstantMessage.SYSTEM_MESSAGE_BASE) {
+      this.baseMessage = ConstantMessage.SYSTEM_MESSAGE_BASE;
     }
 
-    if (message.SYSTEM_MESSAGE_GUIDELINES) {
+    if (ConstantMessage.SYSTEM_MESSAGE_GUIDELINES) {
       this.guidelines = this.guidelines.concat(
-        message.SYSTEM_MESSAGE_GUIDELINES
+        ConstantMessage.SYSTEM_MESSAGE_GUIDELINES
       );
     }
 
     if (
       this.safeReplies.length === 0 &&
-     message.SYSTEM_MESSAGE_SAFE_REPLIES
+     ConstantMessage.SYSTEM_MESSAGE_SAFE_REPLIES
     ) {
-      this.safeReplies =message.SYSTEM_MESSAGE_SAFE_REPLIES.split("||");
+      this.safeReplies =ConstantMessage.SYSTEM_MESSAGE_SAFE_REPLIES.split("||");
     }
   }
 
