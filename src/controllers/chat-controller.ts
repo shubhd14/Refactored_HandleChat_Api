@@ -1,6 +1,6 @@
 
 
-import { Request, Response } from "express";
+import { Response } from "express";
 import Chat from "../models/chat";
 import UserChats from "../models/user-chats";
 import ChatModule from "../services/chat-service";
@@ -14,11 +14,14 @@ import { ChatRequestDto } from "../dtos/chat-dto";
  export class ChatController{
 
 // fetch all recent chat list
-  getRecentChats = async (req: ChatApi, res: Response): Promise<void> => {
-  const userId = req.user?.uid;
+public getRecentChats = async (req: ChatApi, res: Response): Promise<void> => {
+  const userId:string|undefined = req.user?.uid;
+   if (!userId) {
+      res.status(400).json({ error: "Missing user ID." });
+      return;
+    }
   try {
-    const userChats = await UserChats.findOne({ userId: userId });
-
+    const userChats = await UserChats.findOne({ userId });
     if (!userChats) {
       // Return empty chat list structure for new users
       res.status(200).json({
@@ -38,9 +41,13 @@ import { ChatRequestDto } from "../dtos/chat-dto";
 };
 
 // fetch a single chat by chatId and userId from the database
- getChat = async (req: ChatApi, res: Response) => {
-  const userId = req.user?.uid;
-  const chatId = req.query.chatId;
+public getChat = async (req: ChatApi, res: Response):Promise<void>=> {
+  const userId:string|undefined= req.user?.uid;
+  const chatId:string|undefined = req.query.chatId as string;
+   if (!userId || !chatId) {
+      res.status(400).json({ error: "Missing user ID or chat ID." });
+      return;
+    }
   try {
     const chat = await Chat.findOne({
       chatId: chatId,
@@ -48,18 +55,19 @@ import { ChatRequestDto } from "../dtos/chat-dto";
     });
     res.status(200).send(chat);
   } catch (err) {
-    console.log(err);
+    console.log("Error fetching chat:",err);
     res.status(500).send("Error fetching chat!");
   }
 };
 
 //delete a chat by chatId and userId from the database
- deleteChat = async (req: ChatApi, res: Response): Promise<void> => {
-  const userId = req.user?.uid;
-  const chatId = req.query.chatId;
+public deleteChat = async (req: ChatApi, res: Response): Promise<void> => {
+  const userId:string|undefined = req.user?.uid;
+  const chatId:string|undefined = req.query.chatId as string;
 
   if (!userId || !chatId) {
     res.status(400).json({ error: "Missing user ID or chat ID." });
+    return;
   }
 
   try {
@@ -75,6 +83,7 @@ import { ChatRequestDto } from "../dtos/chat-dto";
     // Step 3: Check if both deletions were successful
     if (chatDeleteResult.deletedCount === 0) {
       res.status(404).json({ error: "Chat not found or not owned by user." });
+      return;
     }
 
     res.status(200).json({ message: "Chat deleted successfully." });
@@ -85,11 +94,12 @@ import { ChatRequestDto } from "../dtos/chat-dto";
 };
 
 // update chat title by chatId and userId from the database
- updateChatTitle = async (req: ChatApi, res: Response): Promise<void> => {
+public updateChatTitle = async (req: ChatApi, res: Response): Promise<void> => {
   const userId = req.user?.uid;
   const { chatId, newTitle } = req.body;
   if (!userId || !chatId || !newTitle) {
     res.status(400).json({ error: "Missing userId, chatId, or newTitle." });
+    return;
   }
   try {
     const result = await UserChats.updateOne(
@@ -98,6 +108,7 @@ import { ChatRequestDto } from "../dtos/chat-dto";
     );
     if (result.modifiedCount === 0) {
       res.status(404).json({ error: "Chat not found or title unchanged." });
+      return;
     }
     res.status(200).json({ message: "Chat title updated successfully." });
   } catch (err) {
@@ -109,8 +120,13 @@ import { ChatRequestDto } from "../dtos/chat-dto";
 
 // Load conversation history by user ID and populate sessionHistories map
 
- getConversationHistory = async (req: ChatApi, res: Response) => {
-  const userId = req?.user?.uid;
+public getConversationHistory = async (req: ChatApi, res: Response) => {
+  const userId:string|undefined = req?.user?.uid;
+  
+    if (!userId) {
+      res.status(400).json({ success: false, message: "Missing user ID." });
+      return;
+    }
 
   try {
     
@@ -126,13 +142,13 @@ import { ChatRequestDto } from "../dtos/chat-dto";
     });
   }
 };
-async  saveChatMessage(
+public async saveChatMessage(
   chatId: string,
   userId: string,
   prompt: string,
   response: string,
   title: string // <-- Pass title from responseJson
-) {
+):Promise<void>{
   const chat = await Chat.findOne({ chatId, userId });
   if (!chat) throw new Error("Chat not found!");
 
@@ -167,7 +183,7 @@ async  saveChatMessage(
 }
  }
 
-export async function handleChatRequestApi(req: ChatApi, res: Response) {
+export async function handleChatRequestApi(req: ChatApi, res: Response):Promise<void> {
   const dto = new ChatRequestDto(req.body);
   const handler = new ChatModule.ChatHandler();
   await handler.handleChatRequest(dto, res);
